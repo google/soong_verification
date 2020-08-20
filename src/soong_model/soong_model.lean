@@ -79,12 +79,9 @@ Examples of what happens:
         located on vendor image
 
 -- linkerconfig definitions of relationships between classes (Library_class)
-https://source.corp.google.com/android/system/linkerconfig/testdata/golden_output/stage2/ld.config.txt;l=1
 system -> [sphal, vndk]
 
 definitions of these classes
--- https://source.android.com/devices/architecture/vndk/linker-namespace
--- https://source.corp.google.com/android/system/linkerconfig/testdata/golden_output/stage2/ld.config.txt;l=1
 
 
 First property to prove: the mapping function never returns an empty list
