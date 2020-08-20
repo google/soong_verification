@@ -1,0 +1,3 @@
+builtin_path
+path ./src
+path ../../../../third_party/lean_mathlib/src

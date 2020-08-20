@@ -1,0 +1,8 @@
+[package]
+name = "golean"
+version = "0.1"
+lean_version = "leanprover-community/lean:3.16.5"
+path = "src"
+
+[dependencies]
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "cd29ede960f977551b74af348a231d6196d35412"}

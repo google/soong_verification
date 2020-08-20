@@ -1,0 +1,18 @@
+# Format: google3/devtools/metadata/metadata.proto (go/google3metadata)
+
+name: "soong_verification"
+description: "Formalizing models related to Soong build system for Android."
+
+third_party {
+  url {
+    type: GIT
+    value: "https://github.com/affeldt-aist/seplog.git"
+  }
+  version: "4f418894b56704b658c1044027af914e4864e6e4"
+  last_upgrade_date {
+    year: 2020
+    month: 8
+    day: 12
+  }
+}
+
