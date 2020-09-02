@@ -3,6 +3,7 @@ import data.option.basic
 import data.list.alist   -- association lists
 import data.finmap
 import data.finset.sort
+
 /-
  - Any basic utility functions used around the project can go here
  -/
@@ -29,7 +30,9 @@ section strings
   def joinstr {α:Type} (lst : list α) (printFun : α → string)
                             (delim : string := "") : string :=
       string.join ((lst.map printFun).intersperse delim)
+end strings
 
+section tests
 
   /-
    - Throw error if expected equality does not hold
@@ -44,7 +47,7 @@ section strings
                                 : tactic unit :=
   guard $ to_string a = b
 
-end strings
+end tests
 
 section maps
 

@@ -2,6 +2,8 @@
 
 ## About
 
+
+## Structure
 The code is structured by the following top-level directories.
 
 -   `pretty_printing/` defines a datatype capturing Go syntax and defines
