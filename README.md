@@ -1,14 +1,15 @@
 # Formal verification of Android build code
 
 ## About
+The [Soong](https://android.googlesource.com/platform/build/soong/+/master/README.md) Android build system offers a flexible configuration file format for Android developers, though this syntactically allows for undesirable build processes to be declared. Soong has a Go code base which checks for certain undesirable properties so that builds can fail safely (though it does this in an ad hoc way). My internship goal is to introduce formal methods into this build process - we want to specify a property and have confidence that Soong’s Go code will fail for build configurations which do not meet this specification. For this, we need proofs written in a Proof Assistant as well as a tight connection between these proofs and the production Go code.
 
+This work was done as part of a Google internship, the final presentation of which can be found [here](https://docs.google.com/presentation/d/1fEmQo40AlIEVsQ6emoGFxXPSWw1by3VUoJ3JMsPXlCs/edit?usp=sharing) (video recording [here](https://drive.google.com/file/d/1GtkKS3n9Fp7apy8U2k7_4SVLRv2p6qJ_/view?usp=sharing)).
 
 ## Structure
 The code is structured by the following top-level directories.
 
 -   `pretty_printing/` defines a datatype capturing Go syntax and defines
     methods to print valid Go code.
-
     -   Examples are found in `/test_go_pp.lean`.
 
 - `soong_model/` represents a higher abstraction of how the Soong build system
