@@ -1,7 +1,7 @@
 # Formal verification of Android build code
 
 ## About
-My internship goal is to introduce formal methods into the [Soong](https://android.googlesource.com/platform/build/soong/+/master/README.md) build process. This work was done as part of a Google internship, the summarized in the following presentation ([slides w/ commentary](https://drive.google.com/file/d/176SGJ9zVR3mTy5Q1f7w0QcVQ0r9eetJv/view?usp=sharing), [video](https://drive.google.com/file/d/1_mq_Sg6wXxDOCYopIB8zq_FU9UwUZKlx/view?usp=sharing)).
+This project concerns the [Soong](https://android.googlesource.com/platform/build/soong/+/master/README.md) build system in Android. This work was done as part of a Google internship, the summarized in the following presentation ([slides w/ commentary](https://drive.google.com/file/d/176SGJ9zVR3mTy5Q1f7w0QcVQ0r9eetJv/view?usp=sharing), [video](https://drive.google.com/file/d/1_mq_Sg6wXxDOCYopIB8zq_FU9UwUZKlx/view?usp=sharing)).
 
 ## Bigger Picture
 
