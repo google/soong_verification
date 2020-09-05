@@ -5,8 +5,7 @@ import utils
 /-
  - Examples of Go code pretty printing
  -/
-
-open gotype
+open Gotype
 open goexpr
 
 -- Definitions shared among different tests
@@ -16,14 +15,11 @@ def one: goexpr :=
 def three: goexpr :=
     lit $ literal.intlit 3
 
-def struct1: gotype :=
+def struct1: Gotype :=
     structtype [fielddecl.mk "a" inttype, fielddecl.mk "b" booltype]
 
-def emptystruct: gotype :=
+def emptystruct: Gotype :=
     structtype []
-
-def emptyblock: block :=
-    block.mk [stmt.sstmt simplestmt.emptystmt]
 
 def justint: list fielddecl :=
     [fielddecl.mk "" inttype]
@@ -41,26 +37,26 @@ def irsig : sig :=
     sig.mk [fielddecl.mk "s" strtype, fielddecl.mk "r" runetype] justint
 
 def indexrune : topdecl :=
-    topdecl.fundecl "IndexRune" irsig emptyblock
+    topdecl.fundecl "IndexRune" irsig []
 
 -- Point example
 def pvar : goexpr :=
     named "p"
 
 def sq (x: goexpr): goexpr  :=
-    b binop.gomul x x
+    bin Binop_pp.gomul x x
 
 def pxy2: goexpr :=
-    b binop.goadd (sq (sel pvar "x")) (sq (sel pvar "y"))
+    bin Binop_pp.goadd (sq (sel pvar "x")) (sq (sel pvar "y"))
 
-def ptstruct: gotype :=
+def ptstruct: Gotype :=
     structtype [fielddecl.mk "x" inttype, fielddecl.mk "y" inttype]
 
 def ptlen: topdecl :=
     topdecl.methdecl (fielddecl.mk "p" $ pointertype $ typename "Point")
                      "Length"
                      (sig.mk [] justint)
-                     (block.mk [stmt.rstmt [app (named "Math.Sqrt") [pxy2]]])
+                     [stmt.rstmt [app (named "Math.Sqrt") [pxy2]]]
 
 
 section Test_pretty_printing
@@ -121,7 +117,7 @@ run_cmd test_str
 -- POINTERS
 -----------
 
-run_cmd test_str "*int" $ gotype.pointertype inttype
+run_cmd test_str "*int" $ Gotype.pointertype inttype
 
 -- ARRAYS/SLICES
 ----------------

@@ -5,12 +5,6 @@ import utils
  -
  - This is optimized for PRINTING.
  - not for writing Go w/in Lean nor proving things about Lean+Go code.
- -
- - This may not be complete for our purposes, but examples in test_go_pp.lean
- - make this seem basically done, minus some polishing.
-
- - It's possible we'll need some UserInput format which gets mapped to data
- - structures tailored to proving and to this one for printing.
  -/
 
 
@@ -29,7 +23,6 @@ inductive Binop_pp
 inductive literal : Type
  | intlit : ℤ → literal
  | strlit : string → literal
-
 
 inductive Unop_pp : Type
  | goneg : Unop_pp
@@ -108,7 +101,6 @@ inductive topdecl : Type
  | decl'    : decl → topdecl
  | fundecl  : string → sig → list stmt → topdecl
  | methdecl : fielddecl → string → sig → list stmt → topdecl
-
 
 structure File: Type := (name: string) (decls: list topdecl)
 
