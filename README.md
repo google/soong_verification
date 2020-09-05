@@ -37,7 +37,7 @@ A more involved use case of formal verification is to prove programs meet some s
 def assign_class_prog: Program := <construct the program>
 ```
 
-In general there are many properties we could try to verify for a given `Program`, but in this case we can give a full specification because this program ought perform the same function as our high-level model function. To assert that the program terminates with the same value as the (given some trivial definitions for checking the output of a program and converting values in the high level model to values in our program model), the proof we want is:
+In general there are many properties we could try to verify for a given `Program`, but in this case we can give a full specification because this program ought perform the same function as our high-level model function. To assert that the program terminates with the same value that `assign_lib_classes` would give (given some trivial definitions for checking the output of a program and converting values in the high level model to values in our program model), the proof we want is:
 
 ```
 theorem assign_class_prog_meets_specification:
