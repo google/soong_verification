@@ -1,27 +1,8 @@
 import data.finset.basic
 import data.fintype.basic
-import seplog.c_program
 
 /-
-
- 1). module with properties like vendor_available (soong object)
- 2). imageMutator
- 3). structure Module with partition, and library class (vndk, ll-ndk, etc..)
- 4). checkDoubleLoadable (need definition of this)
-
- a). every library will be installed to >= 1 library classes
- b). partitions: system.img, vendor.img, product.img, system_ext.img,
-                 recovery.img
- c). library class: local (per partition), vndk, vndk-private, vndk-sp,
-                    vndk-sp-private, ll-ndk, ll-ndk-private, sphal
- d). every library class will be installed on a certain partition
- e). for every library class, we have a '-private' library class. You could
-     consider the '-private' class of vndk-private to be itself.
- f). a library class is able to load from another class, either directly or in
-     another namespace
-
-- if X library class relates to vndk, then X library class relates to vndk-sp
-  (vndk-sp is a subset of vndk)
+High-level model of Soong build system (very incomplete)
 
  Concrete examples of libraries:
 
@@ -42,51 +23,8 @@ import seplog.c_program
  - "vndk"
 
  libbinder_ndk
- - soong world: "vendor_availabel: true, isLlNdk() true"
+ - soong world: "vendor_available: true, isLlNdk() true"
  - ll-ndk
-
- class rules:
- - any 'local' binary can load another local binary
- - local vendor binary can load a vndk (and therefore a vndk-sp library)
- - vendor can load ll-ndk, and when it loads ll-ndk, it'll be in another
-    namespace
-
-Examples of what happens:
-- notice libcamerahelper loads libgui
-- cameraserver can load libgui
-- cameraserver can load libcamerahelper
-- vndservicemanager can not load libgui! (because vndk-private)
-- vndservicemanager can load libcamerahelper (which loads libgui)
-- vndservicemanager can load libbinder_ndk (which loads libutils) (all in
-    another namespace)
-- vndservicemanager can load libutils directly (in the same "default" namespace
-    as vndservicemanager)
-- libutils must be marked double_loadable
-
-- if we have ll-ndk library which loads a vndk library, then that vndk library
-    must be double_loadable
-
-
--- TODO: examples of vendor/vendor_available
-- vendor: false/nil -> local system
-- vendor: true -> local vendor
-- vendor_available: we also go to local vendor
-- system_ext_specific: true -> local system_ext
-- system_ext_specific: true and vendor_available: true -> local vendor +
-                        local system_ext
-- vendor: false and vendor_available: true -> local vendor + local system
-- vendor_available: false, vndk { enabled: true } -> vndk-private which is
-        located on vendor image
-
--- linkerconfig definitions of relationships between classes (Library_class)
-system -> [sphal, vndk]
-
-definitions of these classes
-
-
-First property to prove: the mapping function never returns an empty list
-(everything maps to SOME partition)
-
  -/
 
 --------------------------------------------------------------------------------
@@ -94,17 +32,13 @@ First property to prove: the mapping function never returns an empty list
  - Core data structures of Soong model
  -/
 
-
-/- e.g. vndk (installed on system),
-     vndk-private, vndk-sp, vndk-sp-private, local "default" system,
-     local "default" <partition> (installed on <partition>)
-
-
-    Vendor_local refers to all non-vndk / non-vndk_sp / non-vndk_private
-        vendor libaries (i.e. installed to the vendor.image)
--/
-
-
+/-
+ - Different kinds of libraries which have regular behavior in some sense
+ - This does not correspond to any particular abstraction in the codebase but
+ - is very useful for clarifying a mental model of how things work (lots of
+ - behavior can be defined purely in virtue of what library classes a library
+ - inhabits, without having to look at details of the library itself).
+ -/
 @[derive decidable_eq]
 inductive Library_class
  | system_local: Library_class
@@ -121,24 +55,21 @@ inductive Library_class
 open Library_class
 
 /-
- - Platform and board versions are the same when version = current
+ - Being assigned some subset of these variants is a property of a given library
+ - Which are assigned ends up dictating the build environment to a large degree.
  -/
 @[derive decidable_eq]
 inductive Variant
  | core: Variant
  | vendor_platform : Variant
- --| vendor_board : Variant
  | product_platform : Variant
  | product_product : Variant
  | ramdisk : Variant
  | recovery : Variant
 
 /-
-will have these "VendorProperties": http://cs/android/build/soong/cc/
-    cc.go?l=284&rcl=96d4f4550ae0ec4414d5aa3991a796e653728a3e
-and thse VNDK Properties: http://cs/android/build/soong/cc/
-    vndk.go?l=58&rcl=a73f4ae43756fea07e7f422875da4c0040a0b8f6
--/
+ - Specified by a user in a Soong input file.
+ -/
 @[derive decidable_eq]
 structure Library :=
  (name: string)
@@ -169,49 +100,14 @@ structure Library :=
  -- Dependencies on other libraries by name
  (deps: finset string)
 
-/- Properties of libraries used in ImageMutator but can be ignored for present
-   purposes
-
-/*
-    VERSION RELATED CODE - IGNORE ANYTHING TOUCHING THIS
-                          (doesn't show up on normal builds)
-
-    because boardVndkVersion will be platformVndkVersion rather than ""
-    - DeviceConfig().PlatformVndkVersion()
-    - DeviceConfig().VndkVersion()
-    - mctx.DeviceConfig().ProductVndkVersion()
-    - .Properties.Sdk_version
-    - .isSnapshotPrebuilt()
-    - mctx.ModuleDir()
-    - HasVendorVariant
-    - .linker.(interface {version() string})
-    - linker.(*kernelHeadersDecorator);
-*/
-
-/* Also not relevant
-    Properties.Ramdisk_available
-    ModuleBase.InstallInRamdisk()
-    Properties.Recovery_available
-    InstallInRecovery()
-*/
-
-Properties.ExtraVariants (this is the result?)
-
--/
-
-/-
- - Unclear how this is different from Library_class
- -/
-structure LibraryWithClass :=
- (name: string) (libclass: Library_class)
-
 /-
  - Based on Jiyong's summary
  - The "none" corresponds to the very first check of ImageMutatorBegin, where
  - it fails because having both of these options set doesn't make sense
  - TODO consider all four booleans together,
  -   vndk-private is when vendor_available is false but vndk_enabled is true
- -   vndk_sp_private is the same as above but also has vndk_support_system_process true
+ -   vndk_sp_private is the same as above but also has
+ -     vndk_support_system_process true
  -/
 def assign_library_classes (lib: Library): option (finset Library_class) :=
  (option.lift_or_get finset.has_union.1)
@@ -237,7 +133,6 @@ def assign_library_classes (lib: Library): option (finset Library_class) :=
 /-
  - Based on the implemenation at ~3122 of cc.go
  - Relies on assign_library_classes
- - Code lines refer to http://cs/android/build/soong/cc/image.go?rcl=74d255698bf0e38572aa104872ba8f7a46a6da59
  -/
  open Variant
  def libaryclass_to_variants: Library_class → finset Variant
@@ -261,8 +156,8 @@ def assign_library_classes (lib: Library): option (finset Library_class) :=
  - All members of a library class share variants.
  -/
 def libary_to_variant (libc: Library): option (finset Variant):=
-  assign_library_classes libc >>= λ lcs, some
-    (if )
+  assign_library_classes libc >>= λ lcs, some $
+    (libclasses.1.map library_class_to_variants).fold (∪) ∅
 
 --------------------------------------------------------------------------------
 /-
@@ -302,48 +197,3 @@ theorem assign_library_classes_nonempty:
 --   forall llndklib vndklib: LibraryWithClass, llndklib <= vndklib
 --     → vndklib.double_loadable
 --  := sorry
-
---------------------------------------------------------------------------------
-/-
- - Proofs about Go code in relation to the model
- -/
-
--- These things are defined elsewhere, use dummies for now
-
-/-
- - For an cmd corresponding to a function call with a single input/output,
- - a proof that the function called on the input yields the output
- - The output value is optional, where none value signals that the program is
- - expected to FAIL
- -/
-def check_input_output: Π(α β: TypeDecl),
-    cmd → Val α → option (Val β) → Prop := sorry
-
-/-
- - Formal Go model of the program
- -/
-def image_mutator: cmd := sorry
-
-open TypeDecl
-/-
- - Trivial mappings into Go objects from the formal model
- -/
-def Lib_to_Go: Library → Val (gRef "Module") := sorry
-
-
-def Classlist_to_Go: finset Library_class → Val (gRef  "ListModuleClass")
-  := sorry
-
-/-
- - We expect the Go model to function identically to the specification above
- -/
-open TypeDecl
-
-theorem image_mutator_meets_specification:
-    ∀ (lib: Library),
-        check_input_output (gRef "Module") (gRef "ListModuleClass")
-            image_mutator
-            (Lib_to_Go lib)
-            ((option.map Classlist_to_Go) (assign_library_classes lib))
-    := sorry
-
